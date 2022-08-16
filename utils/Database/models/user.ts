@@ -1,4 +1,6 @@
 import { DataTypes, Model } from "https://deno.land/x/denodb@v1.0.40/mod.ts";
+import { Comment } from "./comment.ts";
+import { Post } from "./post.ts";
 
 export class User extends Model {
   static table = "users";
@@ -27,4 +29,12 @@ export class User extends Model {
       length: 60,
     },
   };
+
+  static posts() {
+    return this.hasMany(Post);
+  }
+
+  static comments() {
+    return this.hasMany(Comment);
+  }
 }
