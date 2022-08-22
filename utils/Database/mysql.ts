@@ -1,25 +1,65 @@
-import {
-  Database,
-  MySQLConnector,
-} from "https://deno.land/x/denodb@v1.0.40/mod.ts";
-import { Relationships } from "https://deno.land/x/denodb@v1.0.40/mod.ts";
-import { User } from "./models/user.ts";
-import { Post } from "./models/post.ts";
-import { Comment } from "./models/comment.ts";
+import { Client } from "https://deno.land/x/mysql@v2.10.2/mod.ts";
 
-const connection = new MySQLConnector({
-  host: "127.0.0.1",
+export const client = await new Client().connect({
+  hostname: "127.0.0.1",
   username: "fresh",
   password: "fresh",
-  database: "fresh",
+  db: "fresh",
 });
 
-const db = new Database(connection, { debug: true });
+async function createTable() {
+  await client.execute("DROP TABLE IF EXISTS comments");
+  await client.execute("DROP TABLE IF EXISTS posts");
+  await client.execute("DROP TABLE IF EXISTS users");
+  await client.execute(`
+    CREATE TABLE users (
+      id int NOT NULL AUTO_INCREMENT,
+      name varchar(45) NOT NULL,
+      email varchar(45) NOT NULL,
+      password varchar(60) NOT NULL,
+      created_at timestamp not null default current_timestamp,
+      PRIMARY KEY (id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3
+  `);
+  await client.execute(`
+    CREATE TABLE posts (
+      id int NOT NULL AUTO_INCREMENT,
+      image varchar(100) DEFAULT NULL,
+      title varchar(45) NOT NULL,
+      content varchar(200) DEFAULT NULL,
+      userId int NOT NULL,
+      created_at timestamp not null default current_timestamp,
+      PRIMARY KEY (id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3
+  `);
+  await client.execute(`
+    CREATE TABLE comments (
+      id int NOT NULL AUTO_INCREMENT,
+      comment varchar(100) DEFAULT NULL,
+      userId int NOT NULL,
+      postId int NOT NULL,
+      created_at timestamp not null default current_timestamp,
+      PRIMARY KEY (id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3
+  `);
+}
 
-Relationships.belongsTo(Post, User);
-Relationships.belongsTo(Comment, User);
-Relationships.belongsTo(Comment, Post);
+async function addConstraints() {
+  await client.execute(`
+    ALTER TABLE posts
+    ADD FOREIGN KEY (userId) REFERENCES users(id);
+  `);
+  await client.execute(`
+    ALTER TABLE comments
+    ADD FOREIGN KEY (userId) REFERENCES users(id);
+  `);
+  await client.execute(`
+    ALTER TABLE comments
+    ADD FOREIGN KEY (postId) REFERENCES posts(id);
+  `);
+}
 
-db.link([User, Post, Comment]);
-
-db.sync({ drop: true });
+export async function DBAsync() {
+  await createTable();
+  await addConstraints();
+}
