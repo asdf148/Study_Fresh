@@ -1,5 +1,5 @@
-export class JoinDTO {
-  constructor(init?: Partial<JoinDTO>) {
+export class UserDTO {
+  constructor(init?: Partial<UserDTO>) {
     Object.assign(this, init);
   }
 

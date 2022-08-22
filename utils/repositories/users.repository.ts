@@ -37,8 +37,8 @@ export class UsersRepository {
 
   async update(user: User): Promise<ExecuteResult> {
     return await this.client.execute(
-      `update users set (name, email, password) = (?, ?, ?) where id = ?`,
-      [user.name, user.email, user.password, user.id],
+      `update users set name = ?, email = ? where id = ?`,
+      [user.name, user.email, user.id],
     );
   }
 
