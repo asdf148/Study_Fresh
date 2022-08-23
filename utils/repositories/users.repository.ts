@@ -16,6 +16,14 @@ export class UsersRepository {
     return result.rows;
   }
 
+  async findOneByEmail(email: string) {
+    const result = await this.client.execute(
+      `select * from users where email = ? limit 1`,
+      [email],
+    );
+    return result.rows;
+  }
+
   async findOneById(id: number) {
     const result = await this.client.execute(
       `select * from users where id = ? limit 1`,
